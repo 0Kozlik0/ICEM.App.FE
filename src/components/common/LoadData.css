@@ -1,0 +1,50 @@
+.LoadData-box{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 25vh;
+}
+
+.LoadData-pathText{
+    margin: 20px 0px;
+    background-color: #cbf8ff12;
+    padding: 15px;
+    margin-bottom: 5vh;
+}
+
+.LoadData-button {
+    background-color: #3f6470;
+    color: #fff;
+    padding: 6px 22px;
+    border: 4px double #203a43;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.LoadData-button:hover {
+    background-color: #3d535d;
+}
+
+.LoadData-button:active {
+    background-color: #3d535d;
+}
+
+.LoadData-folderLabel{
+    background-color: #3f6470;
+    color: #fff;
+    padding: 6px 22px;
+    border: 4px double #203a43;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#LoadData-folderSelector{
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+}
+
+.LoadData-highlightText{
+    color: #41a582;
+}

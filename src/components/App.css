@@ -1,3 +1,8 @@
+body{
+  color: white;
+  background: linear-gradient(to right, #0F2027, #203A43, #2C5364);
+}
+
 .App {
   text-align: center;
 }
@@ -14,18 +19,41 @@
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: table;
+  margin: 0 auto;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: #41a582;
+  padding: 22px;
+  /* background: linear-gradient(to right, #6bffcb, #4c839b, #2da15d, #ffffff); */
+  /* -webkit-text-fill-color: transparent; */
+  /* -webkit-background-clip: text; */
+}
+
+.App-headerBg{
+  background-color: #cbf8ff17;
+}
+
+.App-hr{
+  margin: 25px 15%;
+  height: 2px;
+  background-color: #cbf8ff24;
+  border: none;
 }
 
 .App-link {
   color: #61dafb;
+}
+
+.App-ShowReportButton{
+  background-color: #41a582;
+  color: #fff;
+  padding: 6px 22px;
+  border: 4px double #203a43;
+  font-size: 16px;
+  cursor: pointer;
+  display: table;
+  margin: 0 auto;
+  margin-top: 10px;
 }
 
 @keyframes App-logo-spin {

@@ -9,8 +9,7 @@ function LogData() {
             <p>Number of images processed: <span className='LogData-highlightText'>0/10</span></p>
 
             <div className='LogData-texAreaBox'>
-                <textarea name="" id="" className='LogData-textArea' readOnly>
-                    {`1\n2\n2\n2\n2\n2`}
+                <textarea name="" id="" className='LogData-textArea' value={`1\n2\n2\n2\n2\n2`} readOnly>
                 </textarea>
             </div>
         </div>

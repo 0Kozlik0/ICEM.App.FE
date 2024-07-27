@@ -1,30 +1,11 @@
 import { useState } from 'react';
 import './LoadData.css';
-import { TestService } from '../../application/Application/TestService';
-import axios from 'axios';
+import { DataHandlerService } from '../../application/Application/DataHandlerService';
 
 function LoadData() {
     
     const [folderPath, setFolderPath] = useState('not selected');
-    const [files, setFiles] = useState<File[]>([]);
-    const testServise = new TestService();
-
-    const handleSubmit = async () => {
-        const formData = new FormData();
-        formData.append('folderPath', folderPath);
-        files.forEach(file => formData.append('files', file));
-
-        try {
-        const response = await axios.post('http://your-backend-endpoint', formData, {
-            headers: {
-            'Content-Type': 'multipart/form-data',
-            },
-        });
-        console.log('Output:', response.data);
-        } catch (error) {
-        console.error('Error uploading files:', error);
-        }
-    };
+    const dataService = new DataHandlerService();
 
     return(
         <div className='LoadData-box'>
@@ -46,7 +27,7 @@ function LoadData() {
                 }}
             />
             <h3 className='LoadData-pathText'>Selected folder name: <span className='LoadData-highlightText'>{folderPath}</span></h3>
-            <button className='LoadData-button' onClick={handleSubmit}>Submit</button>
+            <button className='LoadData-button' onClick={() => dataService.handleData(document.getElementById("LoadData-folderSelector") as HTMLInputElement)}>Submit</button>
         </div>
     );
 

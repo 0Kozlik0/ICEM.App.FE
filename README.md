@@ -8,13 +8,21 @@
 
     `npm start`
 
-2. Execute tests 
+2. Local Docker execution (Development Docker)
+
+    `docker-compose -f docker/docker-compose.dev.yml up`
+
+    for rebuild
+
+    `docker-compose -f docker/docker-compose.dev.yml up --build`
+
+3. Execute tests 
 
     `npm test`
 
 # Deployment
 
-### Local
+### Local (no docker)
 
 `npm run build`
 
@@ -23,15 +31,6 @@
 `serve -s build`
 
 ### Docker
-
-#### Dev
-
-`docker-compose -f docker/docker-compose.dev.yml up`
-
-for rebuild
-
-`docker-compose -f docker/docker-compose.dev.yml up --build`
-
 
 #### Production
 `TODO`

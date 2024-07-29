@@ -5,29 +5,26 @@ import { DataHandlerService } from '../../application/Application/DataHandlerSer
 function LoadData() {
     
     const [folderPath, setFolderPath] = useState('not selected');
+    const [progressText, setProgressText] = useState('Data not uploaded');
+    
     const dataService = new DataHandlerService();
 
     return(
         <div className='LoadData-box'>
 
-            <label htmlFor="LoadData-folderSelector" className='LoadData-folderLabel'>Select data folder</label>
+            <label htmlFor="LoadData-folderSelector" className='LoadData-folderLabel'>Select zip file</label>
             <input
                 id='LoadData-folderSelector'
                 type="file"
-                multiple
                 onChange={(e) => {
-                    const selectedFolder = e.target.files?.[0]?.webkitRelativePath;
-                    const folderName = selectedFolder?.substring(0, selectedFolder.lastIndexOf('/'));
-                    setFolderPath(folderName!);
-                }}
-                ref={(input) => {
-                    if (input) {
-                        (input as HTMLInputElement).webkitdirectory = true;
-                    }
+                    const selectedFile = e.target.files?.[0];
+                    setFolderPath(selectedFile?.name || 'not selected');
                 }}
             />
-            <h3 className='LoadData-pathText'>Selected folder name: <span className='LoadData-highlightText'>{folderPath}</span></h3>
-            <button className='LoadData-button' onClick={() => dataService.handleData(document.getElementById("LoadData-folderSelector") as HTMLInputElement)}>Submit</button>
+            <h3 className='LoadData-pathText'>Selected file name: <span className='LoadData-highlightText'>{folderPath}</span></h3>
+            <hr className='App-hr LoadData-hr'/>
+            <button className='LoadData-button' onClick={() => dataService.handleZipData(document.getElementById("LoadData-folderSelector") as HTMLInputElement, setProgressText)}>Submit</button>
+            <h4 className='LoadData-highlightTextShift'><span className='LoadData-highlightText'>{progressText}</span></h4>    
         </div>
     );
 

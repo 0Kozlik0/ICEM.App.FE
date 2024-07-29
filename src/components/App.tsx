@@ -9,13 +9,13 @@ const App = () => {
   return (
     <div>
 
-      <div className='App-headerBg'><h1 className='App-header'>ICEM - tool</h1></div>
+      <div className='App-headerBg'><h1 className='App-header'>IKEM - tool</h1></div>
 
       <hr className='App-hr'/>
 
       <LoadData/>
     
-      <hr className='App-hr'/>
+      <hr className='App-hr App-hrLog'/>
 
       <LogData/>
 

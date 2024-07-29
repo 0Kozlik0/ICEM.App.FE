@@ -3,14 +3,18 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 25vh;
+    height: 33vh;
 }
 
 .LoadData-pathText{
     margin: 20px 0px;
     background-color: #cbf8ff12;
     padding: 15px;
-    margin-bottom: 5vh;
+    margin-bottom: 1vh;
+}
+
+.LoadData-hr{
+    width: 35%;
 }
 
 .LoadData-button {
@@ -47,4 +51,9 @@
 
 .LoadData-highlightText{
     color: #41a582;
+}
+
+.LoadData-highlightTextShift{
+    color: #41a582;
+    margin-bottom: 0px;
 }

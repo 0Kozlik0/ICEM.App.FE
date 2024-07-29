@@ -40,6 +40,10 @@ body{
   border: none;
 }
 
+.App-hrLog{
+  margin-top: 10px;
+}
+
 .App-link {
   color: #61dafb;
 }

@@ -4,6 +4,8 @@
 
 # Basic commands
 
+***!Important!*** - rename .env.example to .env and set variables for your local environment
+
 1. Execute application locally 
 
     `npm start`

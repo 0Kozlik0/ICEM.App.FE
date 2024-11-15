@@ -30,7 +30,8 @@ body{
 }
 
 .App-headerBg{
-  background-color: #cbf8ff17;
+  visibility: hidden;
+  /* background-color: #cbf8ff17; */
 }
 
 .App-hr{
@@ -67,4 +68,9 @@ body{
   to {
     transform: rotate(360deg);
   }
+}
+
+.page-container {
+    padding: 20px;
+    text-align: center;
 }

@@ -1,0 +1,115 @@
+.table-container {
+    margin: 20px;
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    color: black;
+}
+
+.data-table th {
+    background-color: #203A43;
+    color: white;
+}
+
+.data-table tr:nth-child(even) {
+    background-color: #f5f5f5;
+}
+
+.data-table tr:hover {
+    background-color: #f0f0f0;
+}
+
+.download-button {
+    padding: 6px 12px;
+    background-color: #41a582;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.download-button:hover {
+    background-color: #338668;
+}
+
+.table-controls {
+    margin: 20px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.search-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 250px;
+    font-size: 14px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #41a582;
+    box-shadow: 0 0 0 2px rgba(65, 165, 130, 0.2);
+}
+
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sortable-header:hover {
+    background-color: #2a4956;
+}
+
+.table-actions {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 16px;
+}
+
+.process-button {
+    padding: 8px 16px;
+    background-color: #41a582;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.process-button:hover {
+    background-color: #338668;
+}
+
+.process-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.data-table td:first-child,
+.data-table th:first-child {
+    width: 40px;
+    text-align: center;
+} 

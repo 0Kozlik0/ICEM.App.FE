@@ -1,40 +1,70 @@
 import { DataPreparationService } from "./DataPreparationService";
-
+import { TiffFileResponse } from "../Domain/Response";
 export class DataHandlerService extends DataPreparationService{
 
     constructor() {
         super();
     }
 
-    public async handleZipData(fileInputElement: HTMLInputElement | null, setProgressText: (text: string) => void) {
-            
-        var filedata = new FormData();
+    private async validateZipFile(file: File): Promise<{ isValid: boolean; message: string }> {
+        if (!file.name.toLowerCase().endsWith('.zip')) {
+            return { isValid: false, message: 'Please select a ZIP file' };
+        }
 
-        // Get the files from the input element
-        const file = fileInputElement!.files?.[0];
-        if (file) {
-            filedata.append('zipFolder', file );
+        try {
+            const JSZip = (await import('jszip')).default;
+            const zip = await JSZip.loadAsync(file);
             
-            try {
-                setProgressText('Uploading data...');
-                const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/transfer_zip_data`, {
-                    method: 'POST',
-                    body: filedata,
-                });
+            const hasInvalidFiles = Object.keys(zip.files).some(filename => {
+                const lowercaseFile = filename.toLowerCase();
+                return !filename.endsWith('/') && // Skip directories
+                       !lowercaseFile.endsWith('.tif') && 
+                       !lowercaseFile.endsWith('.tiff');
+            });
 
-                if (response.ok) {
-                    // File uploaded successfully
-                    setProgressText('Data uploaded successfully');
-                    console.log('File uploaded successfully');
-                } else {
-                    // Error uploading file
-                    setProgressText('Error - Data did not uploaded');
-                    console.error('Error uploading file');
-                }
-            } catch (error) {
-                setProgressText('Error - Data did not uploaded');
-                console.error('Error uploading file:', error);
+            if (hasInvalidFiles) {
+                return { 
+                    isValid: false, 
+                    message: 'ZIP file can only contain .tif or .tiff files' 
+                };
             }
+
+            return { isValid: true, message: 'File is valid' };
+        } catch (error) {
+            return { isValid: false, message: 'Invalid ZIP file format' };
+        }
+    }
+
+    public async handleZipData(fileInputElement: HTMLInputElement | null, setProgressText: (text: string) => void) {
+        const file = fileInputElement?.files?.[0];
+        if (!file) return;
+
+        const validation = await this.validateZipFile(file);
+        if (!validation.isValid) {
+            setProgressText(validation.message);
+            return;
+        }
+
+        var filedata = new FormData();
+        filedata.append('zipFolder', file);
+        
+        try {
+            setProgressText('Uploading data...');
+            const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/upload_zip`, {
+                method: 'POST',
+                body: filedata,
+            });
+
+            if (response.ok) {
+                setProgressText('Data uploaded successfully');
+                console.log('File uploaded successfully');
+            } else {
+                setProgressText('Error - Data did not upload');
+                console.error('Error uploading file');
+            }
+        } catch (error) {
+            setProgressText('Error - Data did not upload');
+            console.error('Error uploading file:', error);
         }
     }
 
@@ -55,5 +85,61 @@ export class DataHandlerService extends DataPreparationService{
         }
     }
 
+    public async getTiffFiles(): Promise<TiffFileResponse> {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/get-tiff-files`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch TIFF files');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching TIFF files:', error);
+            throw error;
+        }
+    }
+
+    public async predictStructure(selectedIds: string[]): Promise<void> {
+        try {
+            const integerIds = selectedIds.map(id => parseInt(id.replace(/\D/g, '')));
+            const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/predict_structure`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(integerIds),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to start prediction');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error starting prediction:', error);
+            throw error;
+        }
+    }
+
+    public async downloadGeoJSON(id: string): Promise<void> {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/download_geojson/${id}`);
+            if (!response.ok) {
+                throw new Error('Failed to download GeoJSON file');
+            }
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${id}.geojson`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Error downloading GeoJSON file:', error);
+            throw error;
+        }
+    }
 
 }

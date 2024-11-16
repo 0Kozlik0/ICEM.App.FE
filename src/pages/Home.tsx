@@ -10,8 +10,8 @@ function Home() {
             <hr className='App-hr'/>
             <LoadData />
             <hr className='App-hr App-hrLog'/>
-            <LogData />
-            <button className='App-ShowReportButton'>Show Report</button>
+            {/* <LogData /> */}
+            {/* <button className='App-ShowReportButton'>Show Report</button> */}
         </div>
     );
 }

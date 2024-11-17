@@ -13,3 +13,13 @@ export interface GeoJSONFileResponse {
       size_bytes: number;
     }[];
 }
+
+export interface PredictionResponse {
+    message: string;
+    task_id: string;
+}
+
+export interface TaskStatusResponse {
+    status: string;
+    task_id: string;
+}

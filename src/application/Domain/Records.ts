@@ -4,6 +4,7 @@ export interface TiffRecord {
     date: string;
     size: string;
     status: string;
+    taskId?: string;
 }
 
 export interface GeoJSONRecord {

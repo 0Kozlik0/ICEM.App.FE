@@ -1,5 +1,12 @@
 import { DataPreparationService } from "./DataPreparationService";
-import { TiffFileResponse } from "../Domain/Response";
+import { PredictionResponse, TaskStatusResponse, TiffFileResponse } from "../Domain/Response";
+
+interface ProcessingTask {
+    taskId: string;
+    recordIds: string[];
+    startTime: number;
+}
+
 export class DataHandlerService extends DataPreparationService{
 
     constructor() {
@@ -98,7 +105,7 @@ export class DataHandlerService extends DataPreparationService{
         }
     }
 
-    public async predictStructure(selectedIds: string[]): Promise<void> {
+    public async predictStructure(selectedIds: string[]): Promise<PredictionResponse> {
         try {
             const integerIds = selectedIds.map(id => parseInt(id.replace(/\D/g, '')));
             const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/predict_structure`, {
@@ -116,6 +123,19 @@ export class DataHandlerService extends DataPreparationService{
             return await response.json();
         } catch (error) {
             console.error('Error starting prediction:', error);
+            throw error;
+        }
+    }
+
+    public async checkTaskStatus(taskId: string): Promise<TaskStatusResponse> {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/task-status/${taskId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch task status');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error checking task status:', error);
             throw error;
         }
     }
@@ -140,6 +160,26 @@ export class DataHandlerService extends DataPreparationService{
             console.error('Error downloading GeoJSON file:', error);
             throw error;
         }
+    }
+
+    public getStoredTasks(): ProcessingTask[] {
+        const tasks = localStorage.getItem('processingTasks');
+        return tasks ? JSON.parse(tasks) : [];
+    }
+
+    public storeTask(taskId: string, recordIds: string[]) {
+        const tasks = this.getStoredTasks();
+        tasks.push({
+            taskId,
+            recordIds,
+            startTime: Date.now()
+        });
+        localStorage.setItem('processingTasks', JSON.stringify(tasks));
+    }
+
+    public removeTask(taskId: string) {
+        const tasks = this.getStoredTasks().filter(task => task.taskId !== taskId);
+        localStorage.setItem('processingTasks', JSON.stringify(tasks));
     }
 
 }

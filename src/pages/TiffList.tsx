@@ -10,22 +10,37 @@ function TiffList() {
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [pollingTasks, setPollingTasks] = useState<Set<string>>(new Set());
+    const dataService = new DataHandlerService();
 
+    // Load records and check for existing tasks
     useEffect(() => {
         const fetchTiffFiles = async () => {
             try {
-                const dataService = new DataHandlerService();
                 const response = await dataService.getTiffFiles();
+                const storedTasks = dataService.getStoredTasks();
                 
-                const formattedRecords: TiffRecord[] = response.tiff_files.map(file => ({
-                    id: file.id,
-                    name: `${file.id}.tiff`,
-                    date: file.last_modified,
-                    size: `${(file.size_bytes).toFixed(2)} MB`,
-                    status: 'Ready'
-                }));
+                const formattedRecords: TiffRecord[] = response.tiff_files.map(file => {
+                    // Find if this record has an associated task
+                    const associatedTask = storedTasks.find(task => 
+                        task.recordIds.includes(file.id)
+                    );
+                    
+                    return {
+                        id: file.id,
+                        name: `${file.id}.tiff`,
+                        date: file.last_modified,
+                        size: `${(file.size_bytes).toFixed(2)} MB`,
+                        status: associatedTask ? 'Processing' : 'Ready',
+                        taskId: associatedTask?.taskId
+                    };
+                });
                 
                 setRecords(formattedRecords);
+                
+                // Add stored tasks to polling
+                const storedTaskIds = new Set(storedTasks.map(task => task.taskId));
+                setPollingTasks(storedTaskIds);
             } catch (error) {
                 console.error('Error fetching TIFF files:', error);
             } finally {
@@ -35,6 +50,53 @@ function TiffList() {
 
         fetchTiffFiles();
     }, []);
+
+    // Status polling effect
+    useEffect(() => {
+        const a = Array.from(pollingTasks);
+        if (a[0] === undefined) return;
+        
+        const pollInterval = setInterval(async () => {
+            const updatedRecords = [...records];
+            let tasksCompleted = new Set<string>();
+            
+            console.log(pollingTasks);
+            for (const taskId of pollingTasks) {
+                try {
+                    const status = await dataService.checkTaskStatus(taskId);
+                    // Only update records that have this specific taskId
+                    updatedRecords.forEach((record, index) => {
+                        if (record.taskId === taskId) {
+                            updatedRecords[index] = {
+                                ...record,
+                                status: status.status
+                            };
+                            
+                            if (status.status === 'Success') {
+                                tasksCompleted.add(taskId);
+                                dataService.removeTask(taskId);
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error polling status:', error);
+                }
+            }
+            
+            setRecords(updatedRecords);
+            
+            // Remove completed tasks from polling
+            if (tasksCompleted.size > 0) {
+                setPollingTasks(prev => {
+                    const newTasks = new Set(prev);
+                    tasksCompleted.forEach(taskId => newTasks.delete(taskId));
+                    return newTasks;
+                });
+            }
+        }, 5000);
+
+        return () => clearInterval(pollInterval);
+    }, [pollingTasks, records]);
 
     const filteredAndSortedRecords = useMemo(() => {
         return records
@@ -68,9 +130,27 @@ function TiffList() {
 
     const handleProcess = async () => {
         try {
-            const dataService = new DataHandlerService();
-            await dataService.predictStructure(selectedRecords);
-            console.log('Processing started for records:', selectedRecords);
+            const response = await dataService.predictStructure(selectedRecords);
+            
+            // Store task information
+            dataService.storeTask(response.task_id, selectedRecords);
+            
+            // Update records with task ID and initial status
+            setRecords(prev => prev.map(record => {
+                if (selectedRecords.includes(record.id)) {
+                    return {
+                        ...record,
+                        status: 'Processing',
+                        taskId: response.task_id
+                    };
+                }
+                return record;
+            }));
+            
+            // Add task to polling set
+            setPollingTasks(prev => new Set(prev).add(response.task_id));
+            
+            setSelectedRecords([]); // Clear selection
         } catch (error) {
             console.error('Error processing records:', error);
         }

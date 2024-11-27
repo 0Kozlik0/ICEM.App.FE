@@ -1,0 +1,92 @@
+.tutorial-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    color: white;
+}
+
+.tutorial-content h1 {
+    color: #41a582;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.tutorial-content h2 {
+    color: #41a582;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.tutorial-content section {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.tutorial-content ol {
+    list-style: none;
+    counter-reset: tutorial-counter;
+    padding: 0;
+}
+
+.tutorial-content ol > li {
+    counter-increment: tutorial-counter;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: rgba(65, 165, 130, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid #41a582;
+    text-align: center;
+}
+
+.tutorial-content ol > li::before {
+    content: counter(tutorial-counter);
+    color: #41a582;
+    font-weight: bold;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.tutorial-content h3 {
+    color: #41a582;
+    font-size: 1.5rem;
+    margin: 0 0 1rem 0;
+    display: inline-block;
+}
+
+.tutorial-content p {
+    margin: 0.5rem auto;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.tutorial-content ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 1rem auto;
+    width: fit-content;
+}
+
+.tutorial-content ul li {
+    margin: 0.8rem 0;
+    position: relative;
+    padding-left: 1rem;
+    text-align: left;
+}
+
+.tutorial-content ul li::before {
+    content: "•";
+    color: #41a582;
+    font-size: 1.2rem;
+    position: absolute;
+    left: -0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.tutorial-content ul li:hover {
+    color: #41a582;
+    transition: color 0.3s ease;
+} 

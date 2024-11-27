@@ -13,7 +13,10 @@ function Navbar() {
                         <Link to="/" className="nav-link">Home</Link>
                     </li>
                     <li className="nav-item">
-                        <Link to="/tiff-list" className="nav-link">WSI List</Link>
+                        <Link to="/image-upload" className="nav-link">Image Upload</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link to="/tiff-list" className="nav-link">Tiff Files</Link>
                     </li>
                     <li className="nav-item">
                         <Link to="/geojson-list" className="nav-link">Results</Link>

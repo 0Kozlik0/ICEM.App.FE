@@ -117,3 +117,62 @@ input[type="checkbox"] {
 .table-results-first-column {
     width: 20% !important;
 }
+
+.process-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.model-select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    color: #333;
+    font-size: 14px;
+}
+
+.model-select:focus {
+    outline: none;
+    border-color: #41a582;
+    box-shadow: 0 0 0 2px rgba(65, 165, 130, 0.2);
+}
+
+.model-select-container {
+    position: relative;
+    display: inline-block;
+}
+
+.model-info-tooltip {
+    visibility: hidden;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px;
+    background-color: #203A43;
+    color: white;
+    border-radius: 4px;
+    width: 200px;
+    text-align: center;
+    font-size: 12px;
+    white-space: normal;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.model-select-container:hover .model-info-tooltip {
+    visibility: visible;
+}
+
+.model-info-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #203A43 transparent transparent transparent;
+}

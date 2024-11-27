@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Navbar from './layout/Navbar';
 import Home from '../pages/Home';
+import ImageUpload from '../pages/ImageUpload';
 import TiffList from '../pages/TiffList';
 import GeoJSONList from '../pages/GeoJSONList';
 
@@ -12,6 +13,7 @@ const App = () => {
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/image-upload" element={<ImageUpload />} />
           <Route path="/tiff-list" element={<TiffList />} />
           <Route path="/geojson-list" element={<GeoJSONList />} />
         </Routes>

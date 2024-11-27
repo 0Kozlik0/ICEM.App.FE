@@ -2,7 +2,20 @@ import { useState, useMemo, useEffect } from 'react';
 import '../styles/Table.css';
 import { DataHandlerService } from '../application/Application/DataHandlerService';
 import { TiffRecord } from '../application/Domain/Records';
+import { PredictionResponse } from '../application/Domain/Response';
 
+const MODEL_OPTIONS = [
+    {
+        value: 'VPP 2024',
+        label: 'VPP 2024',
+        description: 'Latest model used for segmentation and prediction of hearth tissue structures'
+    },
+    // {
+    //     value: 'VPP 2023',
+    //     label: 'VPP 2023',
+    //     description: 'Legacy model for vegetation pattern processing'
+    // }
+];
 
 function TiffList() {
     const [records, setRecords] = useState<TiffRecord[]>([]);
@@ -11,6 +24,7 @@ function TiffList() {
     const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [pollingTasks, setPollingTasks] = useState<Set<string>>(new Set());
+    const [selectedModel, setSelectedModel] = useState<string>('VPP 2024');
     const dataService = new DataHandlerService();
 
     // Load records and check for existing tasks
@@ -130,27 +144,36 @@ function TiffList() {
 
     const handleProcess = async () => {
         try {
-            const response = await dataService.predictStructure(selectedRecords);
+            let response: PredictionResponse | undefined;
+            if (selectedModel === 'VPP 2024') {
+                response = await dataService.predictStructureVPP2024(selectedRecords);
+            } else if (selectedModel === 'VPP 2023') {
+                // TODO: Implement new model
+            }
             
-            // Store task information
-            dataService.storeTask(response.task_id, selectedRecords);
-            
-            // Update records with task ID and initial status
-            setRecords(prev => prev.map(record => {
-                if (selectedRecords.includes(record.id)) {
-                    return {
-                        ...record,
-                        status: 'Processing',
-                        taskId: response.task_id
-                    };
-                }
-                return record;
-            }));
-            
-            // Add task to polling set
-            setPollingTasks(prev => new Set(prev).add(response.task_id));
-            
-            setSelectedRecords([]); // Clear selection
+            if (response === undefined) {
+                throw new Error('No response from prediction');
+            } else {
+                // Store task information
+                dataService.storeTask(response!.task_id, selectedRecords);
+                
+                // Update records with task ID and initial status
+                setRecords(prev => prev.map(record => {
+                    if (selectedRecords.includes(record.id)) {
+                        return {
+                            ...record,
+                            status: 'Processing',
+                            taskId: response!.task_id
+                        };
+                    }
+                    return record;
+                }));
+                
+                // Add task to polling set
+                setPollingTasks(prev => new Set(prev).add(response!.task_id));
+                
+                setSelectedRecords([]); // Clear selection
+            }
         } catch (error) {
             console.error('Error processing records:', error);
         }
@@ -175,13 +198,31 @@ function TiffList() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="search-input"
                         />
-                        <button 
-                            className="process-button"
-                            onClick={handleProcess}
-                            disabled={selectedRecords.length === 0}
-                        >
-                            Process Selected ({selectedRecords.length})
-                        </button>
+                        <div className="process-controls">
+                            <div className="model-select-container">
+                                <select 
+                                    value={selectedModel}
+                                    onChange={(e) => setSelectedModel(e.target.value)}
+                                    className="model-select"
+                                >
+                                    {MODEL_OPTIONS.map(option => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="model-info-tooltip">
+                                    {MODEL_OPTIONS.find(option => option.value === selectedModel)?.description}
+                                </div>
+                            </div>
+                            <button 
+                                className="process-button"
+                                onClick={handleProcess}
+                                disabled={selectedRecords.length === 0}
+                            >
+                                Process Selected ({selectedRecords.length})
+                            </button>
+                        </div>
                     </div>
                     <div className="table-container">
                         <table className="data-table">

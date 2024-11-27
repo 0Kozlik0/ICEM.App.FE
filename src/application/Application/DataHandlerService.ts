@@ -105,7 +105,7 @@ export class DataHandlerService extends DataPreparationService{
         }
     }
 
-    public async predictStructure(selectedIds: string[]): Promise<PredictionResponse> {
+    public async predictStructureVPP2024(selectedIds: string[]): Promise<PredictionResponse> {
         try {
             const integerIds = selectedIds.map(id => parseInt(id.replace(/\D/g, '')));
             const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/predict_structure`, {

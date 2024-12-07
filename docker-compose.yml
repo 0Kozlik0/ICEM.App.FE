@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  vgg_hist_fe:
+    build: .
+    ports:
+      - "7040:7040"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    env_file:
+      - .env

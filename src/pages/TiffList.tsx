@@ -199,6 +199,23 @@ function TiffList() {
         <>
             <div className="page-container">
                 <div className="table-container">
+                    <div className="status-legend">
+                        <h3>Status Meanings:</h3>
+                        <div className="status-legend-items">
+                            <div className="status-legend-item">
+                                <span className="status-badge status-imported">Ready</span>
+                                <span>File is uploaded and ready for processing</span>
+                            </div>
+                            <div className="status-legend-item">
+                                <span className="status-badge status-processing">Processing</span>
+                                <span>Analysis is currently in progress</span>
+                            </div>
+                            <div className="status-legend-item">
+                                <span className="status-badge status-processed">Success</span>
+                                <span>Analysis completed successfully</span>
+                            </div>
+                        </div>
+                    </div>
                     <div className="table-controls">
                         <div className="search-section">
                             <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -216,6 +233,7 @@ function TiffList() {
                             </button> */}
                         </div>
                         <div className="action-section">
+                            <span className="model-select-label">Model:</span>
                             <select 
                                 value={selectedModel}
                                 onChange={(e) => setSelectedModel(e.target.value)}

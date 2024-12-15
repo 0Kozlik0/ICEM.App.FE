@@ -15,7 +15,7 @@
 }
 
 .hero-section h1 {
-    color: #8b2635;
+    color: #b22222;
     font-size: 2.5rem;
     margin-bottom: 20px;
 }
@@ -43,7 +43,7 @@
 }
 
 .info-card h2 {
-    color: #8b2635;
+    color: #b22222;
     font-size: 1.5rem;
     margin-bottom: 16px;
 }
@@ -54,7 +54,7 @@
 }
 
 .warning-card {
-    border-left: 4px solid #8b2635;
+    border-left: 4px solid #b22222;
 }
 
 .tutorial-content {
@@ -65,7 +65,7 @@
 }
 
 .tutorial-content h2 {
-    color: #8b2635;
+    color: #b22222;
     font-size: 1.75rem;
     margin-bottom: 24px;
 }
@@ -82,11 +82,11 @@
     padding: 20px;
     background-color: #f8f9fa;
     border-radius: 8px;
-    border-left: 4px solid #8b2635;
+    border-left: 4px solid #b22222;
 }
 
 .tutorial-content h3 {
-    color: #8b2635;
+    color: #b22222;
     font-size: 1.25rem;
     margin-bottom: 12px;
 }

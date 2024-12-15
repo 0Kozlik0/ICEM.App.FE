@@ -1,70 +1,132 @@
 .table-container {
-    margin: 20px;
-    overflow-x: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0px;
 }
 
 .data-table {
     width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.data-table th,
-.data-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-    color: black;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .data-table th {
-    background-color: #203A43;
-    color: white;
-}
-
-.data-table tr:nth-child(even) {
     background-color: #f5f5f5;
+    color: #666;
+    font-weight: 500;
+    padding: 12px 16px;
+    text-align: left;
+    border-top: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
 }
 
-.data-table tr:hover {
-    background-color: #f0f0f0;
+.data-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
 }
 
 .download-button {
-    padding: 6px 12px;
-    background-color: #41a582;
+    padding: 12px 16px;
+    background-color: #8b2635;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-size: 14px;
 }
 
 .download-button:hover {
-    background-color: #338668;
+    background-color: #702029;
+}
+
+.download-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .table-controls {
-    margin: 20px;
     display: flex;
-    justify-content: flex-start;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
+    margin-bottom: 7px;
+    padding: 8px;
+    padding-top: 15px;
+    background-color: white;
+    border-radius: 8px;
+}
+
+.search-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: white;
+    border: 1px solid #ffe4e6;
+    border-radius: 12px;
+    padding: 8px 16px;
+    width: fit-content;
 }
 
 .search-input {
     padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    border: none;
     width: 250px;
+    background: transparent;
     font-size: 14px;
 }
 
 .search-input:focus {
     outline: none;
-    border-color: #41a582;
-    box-shadow: 0 0 0 2px rgba(65, 165, 130, 0.2);
+}
+
+/* Add a search icon color */
+.search-icon {
+    color: #666;
+}
+
+.action-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Top select box with tooltip */
+.model-select-container {
+    position: relative;
+    display: inline-block;
+}
+
+.model-select {
+    padding: 12px 16px;
+    border: 1px solid #ffe4e6;
+    border-radius: 8px;
+    min-width: 200px;
+    background-color: white;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+.model-select:focus {
+    outline: none;
+    border-color: #ffe4e6;
+}
+
+.model-select option {
+    padding: 8px;
+    font-size: 14px;
+}
+
+.search-input:focus {
+    outline: none;
 }
 
 .sortable-header {
@@ -73,7 +135,7 @@
 }
 
 .sortable-header:hover {
-    background-color: #2a4956;
+    background-color: #f0f0f0;
 }
 
 .table-actions {
@@ -84,17 +146,16 @@
 }
 
 .process-button {
-    padding: 8px 16px;
-    background-color: #41a582;
+    background-color: #8b2635;
     color: white;
+    padding: 12px 16px;
     border: none;
-    border-radius: 4px;
+    border-radius: 7px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
 }
 
 .process-button:hover {
-    background-color: #338668;
+    background-color: #a02d3e;
 }
 
 .process-button:disabled {
@@ -102,10 +163,55 @@
     cursor: not-allowed;
 }
 
+/* Custom checkbox styling */
 input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1px solid #ffe4e6;
+    border-radius: 6px;
+    background-color: white;
     cursor: pointer;
+    position: relative;
+    margin: 0;
+}
+
+/* Checked state */
+input[type="checkbox"]:checked {
+    background-color: #8b2635;
+    border-color: #8b2635;
+}
+
+/* Custom checkmark */
+input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Hover state */
+input[type="checkbox"]:hover {
+    border-color: #8b2635;
+}
+
+/* Focus state */
+input[type="checkbox"]:focus {
+    outline: none;
+}
+
+/* Adjust table cell alignment for checkboxes */
+.data-table td:first-child,
+.data-table th:first-child {
+    width: 40px;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .data-table td:first-child,
@@ -125,23 +231,14 @@ input[type="checkbox"] {
 }
 
 .model-select {
-    padding: 8px;
+    padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    background-color: white;
-    color: #333;
-    font-size: 14px;
+    margin-right: 12px;
 }
 
 .model-select:focus {
     outline: none;
-    border-color: #41a582;
-    box-shadow: 0 0 0 2px rgba(65, 165, 130, 0.2);
-}
-
-.model-select-container {
-    position: relative;
-    display: inline-block;
 }
 
 .model-info-tooltip {
@@ -175,4 +272,110 @@ input[type="checkbox"] {
     border-width: 5px;
     border-style: solid;
     border-color: #203A43 transparent transparent transparent;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85em;
+}
+
+.status-badge.status-processed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.status-processing {
+    background-color: #fff3e0;
+    color: #f57c00;
+}
+
+.status-badge.status-imported {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.icon-button {
+    padding: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    border-radius: 4px;
+}
+
+.icon-button:hover {
+    background-color: #f5f5f5;
+}
+
+/* Inline select boxes (in table) */
+.model-select-inline {
+    padding: 12px 16px;
+    border: 1px solid #ffe4e6;
+    border-radius: 8px;
+    min-width: 200px;
+    background-color: white;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+.model-tooltip {
+    display: none;
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    width: max-content;
+    max-width: 250px;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 8px;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.model-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 6px 6px 6px;
+    border-style: solid;
+    border-color: transparent transparent #333 transparent;
+}
+
+.model-select-container:hover .model-tooltip {
+    display: block;
+}
+
+input[type="checkbox"].partial-checked:indeterminate {
+    background-color: white;
+    border-color: #8b2635;
+}
+
+input[type="checkbox"].partial-checked:indeterminate::after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 8px;
+    height: 2px;
+    background-color: #8b2635;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.data-table td:last-child,
+.data-table th:last-child {
+    text-align: center;
 }

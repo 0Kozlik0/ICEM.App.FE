@@ -3,6 +3,9 @@ import '../styles/Table.css';
 import { DataHandlerService } from '../application/Application/DataHandlerService';
 import { TiffRecord } from '../application/Domain/Records';
 import { PredictionResponse } from '../application/Domain/Response';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
+import Footer from '../components/layout/Footer';
 
 const MODEL_OPTIONS = [
     {
@@ -126,18 +129,27 @@ function TiffList() {
 
     const handleCheckboxChange = (id: string) => {
         setSelectedRecords(prev => {
-            if (prev.includes(id)) {
-                return prev.filter(recordId => recordId !== id);
-            } else {
-                return [...prev, id];
+            // If we're adding a new selection
+            if (!prev.includes(id)) {
+                const newSelectedRecords = [...prev, id];
+                // If after adding this selection we have all records selected,
+                // clear the selection
+                if (newSelectedRecords.length === filteredAndSortedRecords.length) {
+                    return [];
+                }
+                return newSelectedRecords;
             }
+            // If we're removing a selection, just remove it
+            return prev.filter(recordId => recordId !== id);
         });
     };
 
     const handleSelectAll = () => {
-        if (selectedRecords.length === filteredAndSortedRecords.length) {
+        if (selectedRecords.length > 0) {
+            // If any records are selected, clear the selection
             setSelectedRecords([]);
         } else {
+            // If no records are selected, select all
             setSelectedRecords(filteredAndSortedRecords.map(record => record.id));
         }
     };
@@ -184,37 +196,38 @@ function TiffList() {
     };
 
     return (
-        <div className="page-container">
-            <h1>TIFF Files</h1>
-            {isLoading ? (
-                <div>Loading...</div>
-            ) : (
-                <>
+        <>
+            <div className="page-container">
+                <div className="table-container">
                     <div className="table-controls">
-                        <input
-                            type="text"
-                            placeholder="Search by name..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input"
-                        />
-                        <div className="process-controls">
-                            <div className="model-select-container">
-                                <select 
-                                    value={selectedModel}
-                                    onChange={(e) => setSelectedModel(e.target.value)}
-                                    className="model-select"
-                                >
-                                    {MODEL_OPTIONS.map(option => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="model-info-tooltip">
-                                    {MODEL_OPTIONS.find(option => option.value === selectedModel)?.description}
-                                </div>
-                            </div>
+                        <div className="search-section">
+                            <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            <input
+                                type="text"
+                                placeholder="Search by name"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="search-input"
+                            />
+                            {/* <button className="icon-button">
+                                <DeleteIcon />
+                            </button> */}
+                        </div>
+                        <div className="action-section">
+                            <select 
+                                value={selectedModel}
+                                onChange={(e) => setSelectedModel(e.target.value)}
+                                className="model-select-inline"
+                            >
+                                <option value="">Select model</option>
+                                {MODEL_OPTIONS.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
                             <button 
                                 className="process-button"
                                 onClick={handleProcess}
@@ -224,47 +237,87 @@ function TiffList() {
                             </button>
                         </div>
                     </div>
-                    <div className="table-container">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>
+                    
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input
+                                        type="checkbox"
+                                        className={
+                                            selectedRecords.length > 0 && 
+                                            selectedRecords.length < filteredAndSortedRecords.length 
+                                                ? 'partial-checked' 
+                                                : ''
+                                        }
+                                        ref={checkbox => {
+                                            if (checkbox) {
+                                                checkbox.indeterminate = 
+                                                    selectedRecords.length > 0 && 
+                                                    selectedRecords.length < filteredAndSortedRecords.length;
+                                            }
+                                        }}
+                                        checked={selectedRecords.length === filteredAndSortedRecords.length}
+                                        onChange={handleSelectAll}
+                                    />
+                                </th>
+                                <th>Name</th>
+                                <th onClick={toggleSortDirection}>
+                                    Date {sortDirection === 'asc' ? '↑' : '↓'}
+                                </th>
+                                {/* <th>Model</th> */}
+                                <th>Status</th>
+                                {/* <th>Results</th> */}
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredAndSortedRecords.map((record) => (
+                                <tr key={record.id}>
+                                    <td>
                                         <input
                                             type="checkbox"
-                                            checked={selectedRecords.length === filteredAndSortedRecords.length}
-                                            onChange={handleSelectAll}
+                                            checked={selectedRecords.includes(record.id)}
+                                            onChange={() => handleCheckboxChange(record.id)}
                                         />
-                                    </th>
-                                    <th>Name</th>
-                                    <th onClick={toggleSortDirection} className="sortable-header">
-                                        Date {sortDirection === 'asc' ? '↑' : '↓'}
-                                    </th>
-                                    <th>Size</th>
-                                    <th>Status</th>
+                                    </td>
+                                    <td>{record.name}</td>
+                                    <td>{record.date}</td>
+                                    {/* <td>
+                                        <select className="model-select-inline">
+                                            <option value="">Select model</option>
+                                            {MODEL_OPTIONS.map(option => (
+                                                <option key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </td> */}
+                                    <td>
+                                        <span className={`status-badge status-${record.status.toLowerCase()}`}>
+                                            {record.status}
+                                        </span>
+                                    </td>
+                                    {/* <td>
+                                        {record.status === 'Processed' && (
+                                            <button className="icon-button">
+                                                <DownloadIcon />
+                                            </button>
+                                        )}
+                                    </td> */}
+                                    <td>
+                                        <button className="icon-button">
+                                            <DeleteIcon />
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {filteredAndSortedRecords.map((record) => (
-                                    <tr key={record.id}>
-                                        <td>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedRecords.includes(record.id)}
-                                                onChange={() => handleCheckboxChange(record.id)}
-                                            />
-                                        </td>
-                                        <td>{record.name}</td>
-                                        <td>{record.date}</td>
-                                        <td>{record.size}</td>
-                                        <td>{record.status}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </>
-            )}
-        </div>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <Footer />
+        </>
     );
 }
 

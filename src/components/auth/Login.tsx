@@ -13,16 +13,35 @@ const Login = ({ onLogin }: LoginProps) => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (username === 'admin' && password === 'password123') {
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('lastActivity', Date.now().toString());
-      onLogin(true);
-      navigate('/');
-    } else {
-      setError('Invalid credentials');
+    try {
+      const formData = new URLSearchParams();
+      formData.append('username', username);
+      formData.append('password', password);
+
+      const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('lastActivity', Date.now().toString());
+        onLogin(true);
+        navigate('/');
+      } else {
+        setError('Invalid credentials');
+      }
+    } catch (error) {
+      setError('An error occurred during login');
+      console.error('Login error:', error);
     }
   };
 

@@ -12,4 +12,5 @@ export interface GeoJSONRecord {
     name: string;
     date: string;
     size: string;
+    type: 'tissue' | 'cell';
 }

@@ -6,6 +6,7 @@ import { PredictionResponse } from '../application/Domain/Response';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import Footer from '../components/layout/Footer';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const MODEL_OPTIONS = [
     {
@@ -29,6 +30,8 @@ function TiffList() {
     const [pollingTasks, setPollingTasks] = useState<Set<string>>(new Set());
     const [selectedModel, setSelectedModel] = useState<string>('VPP 2024');
     const dataService = new DataHandlerService();
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
 
     // Load records and check for existing tasks
     useEffect(() => {
@@ -195,6 +198,24 @@ function TiffList() {
         setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
     };
 
+    const handleDeleteClick = (id: string) => {
+        setRecordToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleDelete = async () => {
+        if (recordToDelete) {
+            try {
+                await dataService.deleteTiffData(recordToDelete);
+                setRecords(prev => prev.filter(record => record.id !== recordToDelete));
+            } catch (error) {
+                console.error('Error deleting TIFF data:', error);
+            }
+            setIsDeleteModalOpen(false);
+            setRecordToDelete(null);
+        }
+    };
+
     return (
         <>
             <div className="page-container">
@@ -324,7 +345,11 @@ function TiffList() {
                                         )}
                                     </td> */}
                                     <td>
-                                        <button className="icon-button">
+                                        <button 
+                                            className="icon-button"
+                                            onClick={() => handleDeleteClick(record.id)}
+                                            title="Delete file and associated data"
+                                        >
                                             <DeleteIcon />
                                         </button>
                                     </td>
@@ -335,6 +360,13 @@ function TiffList() {
                 </div>
             </div>
             <Footer />
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDelete}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this file and all associated data? This action cannot be undone."
+            />
         </>
     );
 }

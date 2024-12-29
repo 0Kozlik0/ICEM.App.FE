@@ -4,6 +4,7 @@ import { GeoJSONFileResponse } from '../application/Domain/Response';
 import { GeoJSONRecord } from '../application/Domain/Records';
 import { DataHandlerService } from '../application/Application/DataHandlerService';
 import Footer from '../components/layout/Footer';
+import { AuthService } from '../services/AuthService';
 
 function GeoJSONList() {
     const [records, setRecords] = useState<GeoJSONRecord[]>([]);
@@ -16,18 +17,25 @@ function GeoJSONList() {
     useEffect(() => {
         const fetchGeoJSONFiles = async () => {
             try {
-                const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/get-geojson-files`);
+                const response = await AuthService.fetchWithAuth(
+                    `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/get-geojson-files`
+                );
                 if (!response.ok) {
                     throw new Error('Failed to fetch GeoJSON files');
                 }
                 const data: GeoJSONFileResponse = await response.json();
+                console.log(data);
                 
-                const formattedRecords: GeoJSONRecord[] = data.geojson_files.map(file => ({
-                    id: file.id,
-                    name: `${file.id}.geojson`,
-                    date: file.last_modified,
-                    size: `${file.size_bytes.toFixed(2)} MB`
-                }));
+                const formattedRecords: GeoJSONRecord[] = data.geojson_files.map(file => {
+                    const type = file.id.toLowerCase().includes('tissue') ? 'tissue' : 'cell';
+                    return {
+                        id: file.id,
+                        name: `${file.id}.geojson`,
+                        date: file.last_modified,
+                        size: `${file.size_bytes.toFixed(2)} MB`,
+                        type: type
+                    };
+                });
                 
                 setRecords(formattedRecords);
             } catch (error) {
@@ -52,9 +60,9 @@ function GeoJSONList() {
             });
     }, [records, searchTerm, sortDirection]);
 
-    const handleDownload = async (id: string) => {
+    const handleDownload = async (id: string, type: 'tissue' | 'cell') => {
         try {
-            await dataService.downloadGeoJSON(id);
+            await dataService.downloadGeoJSON(id, type);
         } catch (error) {
             console.error('Error downloading file:', error);
         }
@@ -88,7 +96,10 @@ function GeoJSONList() {
     const handleDownloadMultiple = async () => {
         try {
             for (const id of selectedRecords) {
-                await dataService.downloadGeoJSON(id);
+                const record = records.find(r => r.id === id);
+                if (record) {
+                    await dataService.downloadGeoJSON(id, record.type);
+                }
             }
             setSelectedRecords([]); // Clear selection after download
         } catch (error) {
@@ -171,7 +182,7 @@ function GeoJSONList() {
                                     <td>
                                         <button 
                                             className="download-button"
-                                            onClick={() => handleDownload(record.id)}
+                                            onClick={() => handleDownload(record.id, record.type)}
                                         >
                                             Download
                                         </button>

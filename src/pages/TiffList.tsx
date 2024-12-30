@@ -32,6 +32,7 @@ function TiffList() {
     const dataService = new DataHandlerService();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
+    const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
 
     // Load records and check for existing tasks
     useEffect(() => {
@@ -41,21 +42,27 @@ function TiffList() {
                 const storedTasks = dataService.getStoredTasks();
                 
                 const formattedRecords: TiffRecord[] = response.tiff_files.map(file => {
+                    const storedTask = storedTasks.find(task => task.recordIds.includes(file.id));
                     return {
                         id: file.id,
                         name: `${file.id}.tiff`,
                         date: file.last_modified,
                         size: `${(file.size_bytes).toFixed(2)} MB`,
-                        status: 'Ready',
-                        taskId: undefined
+                        status: storedTask ? 'Processing' : 'Ready',
+                        taskId: storedTask?.taskId
                     };
                 });
                 
                 setRecords(formattedRecords);
                 
-                // Add stored tasks to polling
-                const storedTaskIds = new Set(storedTasks.map(task => task.taskId));
-                setPollingTasks(storedTaskIds);
+                // Only add tasks that are in Processing state
+                const processingTasks = new Set(
+                    formattedRecords
+                        .filter(record => record.status === 'Processing')
+                        .map(record => record.taskId)
+                        .filter((taskId): taskId is string => taskId !== undefined)
+                );
+                setPollingTasks(processingTasks);
             } catch (error) {
                 console.error('Error fetching TIFF files:', error);
             } finally {
@@ -68,49 +75,22 @@ function TiffList() {
 
     // Status polling effect
     useEffect(() => {
-        if (pollingTasks.size === 0) return;
+        const intervals: { [key: string]: NodeJS.Timeout } = {};
         
-        const pollInterval = setInterval(async () => {
-            const updatedRecords = [...records];
-            let tasksCompleted = new Set<string>();
-            
-            for (const taskId of pollingTasks) {
-                try {
-                    const status = await dataService.checkTaskStatus(taskId);
-                    // Only update records that have this specific taskId
-                    updatedRecords.forEach((record, index) => {
-                        if (record.taskId === taskId) {
-                            updatedRecords[index] = {
-                                ...record,
-                                // Show 'Ready' if status is 'Pending'
-                                status: status.status === 'Pending' ? 'Processing' : status.status
-                            };
-                            
-                            if (status.status === 'Success') {
-                                tasksCompleted.add(taskId);
-                                dataService.removeTask(taskId);
-                            }
-                        }
-                    });
-                } catch (error) {
-                    console.error('Error polling status:', error);
+        // Only start polling for tasks that are in Processing state
+        records
+            .filter(record => record.status === 'Processing' && record.taskId)
+            .forEach(record => {
+                if (record.taskId && !intervals[record.taskId]) {
+                    intervals[record.taskId] = startPolling(record.taskId);
                 }
-            }
-            
-            setRecords(updatedRecords);
-            
-            // Remove completed tasks from polling
-            if (tasksCompleted.size > 0) {
-                setPollingTasks(prev => {
-                    const newTasks = new Set(prev);
-                    tasksCompleted.forEach(taskId => newTasks.delete(taskId));
-                    return newTasks;
-                });
-            }
-        }, 5000);
+            });
 
-        return () => clearInterval(pollInterval);
-    }, [pollingTasks, records]);
+        // Cleanup function
+        return () => {
+            Object.values(intervals).forEach(interval => clearInterval(interval));
+        };
+    }, [records, pollingTasks.size]);
 
     const filteredAndSortedRecords = useMemo(() => {
         return records
@@ -178,8 +158,9 @@ function TiffList() {
                     return record;
                 }));
                 
-                // Add task to polling set
+                // Add task to polling set and start polling
                 setPollingTasks(prev => new Set(prev).add(response!.task_id));
+                startPolling(response.task_id);
                 
                 setSelectedRecords([]); // Clear selection
             }
@@ -209,6 +190,57 @@ function TiffList() {
             setRecordToDelete(null);
         }
     };
+
+    const startPolling = (taskId: string) => {
+        const pollInterval = setInterval(async () => {
+            try {
+                const status = await dataService.checkTaskStatus(taskId);
+                setRecords(prev => prev.map(record => {
+                    if (record.taskId === taskId) {
+                        return {
+                            ...record,
+                            status: status.status === 'Pending' ? 'Processing' : status.status
+                        };
+                    }
+                    return record;
+                }));
+                
+                if (status.status === 'Success' || status.status === 'Failed') {
+                    dataService.removeTask(taskId);
+                    setPollingTasks(prev => {
+                        const newTasks = new Set(prev);
+                        newTasks.delete(taskId);
+                        return newTasks;
+                    });
+                    setCompletedTasks(prev => new Set(prev).add(taskId));
+                    clearInterval(pollInterval);
+                }
+            } catch (error) {
+                console.error('Error polling status:', error);
+            }
+        }, 5000);
+
+        return pollInterval;
+    };
+
+    // Add this useEffect to handle cleanup of completed tasks
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            completedTasks.forEach(taskId => {
+                dataService.removeTask(taskId);
+            });
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            // Clean up when component unmounts
+            completedTasks.forEach(taskId => {
+                dataService.removeTask(taskId);
+            });
+        };
+    }, [completedTasks]);
 
     return (
         <>

@@ -41,18 +41,13 @@ function TiffList() {
                 const storedTasks = dataService.getStoredTasks();
                 
                 const formattedRecords: TiffRecord[] = response.tiff_files.map(file => {
-                    // Find if this record has an associated task
-                    const associatedTask = storedTasks.find(task => 
-                        task.recordIds.includes(file.id)
-                    );
-                    
                     return {
                         id: file.id,
                         name: `${file.id}.tiff`,
                         date: file.last_modified,
                         size: `${(file.size_bytes).toFixed(2)} MB`,
-                        status: associatedTask ? 'Processing' : 'Ready',
-                        taskId: associatedTask?.taskId
+                        status: 'Ready',
+                        taskId: undefined
                     };
                 });
                 
@@ -73,14 +68,12 @@ function TiffList() {
 
     // Status polling effect
     useEffect(() => {
-        const a = Array.from(pollingTasks);
-        if (a[0] === undefined) return;
+        if (pollingTasks.size === 0) return;
         
         const pollInterval = setInterval(async () => {
             const updatedRecords = [...records];
             let tasksCompleted = new Set<string>();
             
-            console.log(pollingTasks);
             for (const taskId of pollingTasks) {
                 try {
                     const status = await dataService.checkTaskStatus(taskId);
@@ -89,7 +82,8 @@ function TiffList() {
                         if (record.taskId === taskId) {
                             updatedRecords[index] = {
                                 ...record,
-                                status: status.status
+                                // Show 'Ready' if status is 'Pending'
+                                status: status.status === 'Pending' ? 'Processing' : status.status
                             };
                             
                             if (status.status === 'Success') {
@@ -172,7 +166,7 @@ function TiffList() {
                 // Store task information
                 dataService.storeTask(response!.task_id, selectedRecords);
                 
-                // Update records with task ID and initial status
+                // Update only selected records with task ID and Processing status
                 setRecords(prev => prev.map(record => {
                     if (selectedRecords.includes(record.id)) {
                         return {
@@ -225,15 +219,19 @@ function TiffList() {
                         <div className="status-legend-items">
                             <div className="status-legend-item">
                                 <span className="status-badge status-imported">Ready</span>
-                                <span>File is uploaded and ready for processing</span>
+                                <span>Ready for processing</span>
                             </div>
                             <div className="status-legend-item">
                                 <span className="status-badge status-processing">Processing</span>
-                                <span>Analysis is currently in progress</span>
+                                <span>Analysis in progress</span>
                             </div>
                             <div className="status-legend-item">
                                 <span className="status-badge status-processed">Success</span>
-                                <span>Analysis completed successfully</span>
+                                <span>Analysis completed</span>
+                            </div>
+                            <div className="status-legend-item">
+                                <span className="status-badge status-failed">Failed</span>
+                                <span>Error occurred</span>
                             </div>
                         </div>
                     </div>
@@ -333,7 +331,12 @@ function TiffList() {
                                         </select>
                                     </td> */}
                                     <td>
-                                        <span className={`status-badge status-${record.status.toLowerCase()}`}>
+                                        <span className={`status-badge ${
+                                            record.status === 'Ready' ? 'status-imported' :
+                                            record.status === 'Processing' ? 'status-processing' :
+                                            record.status === 'Success' ? 'status-processed' :
+                                            record.status === 'Failed' ? 'status-failed' : ''
+                                        }`}>
                                             {record.status}
                                         </span>
                                     </td>

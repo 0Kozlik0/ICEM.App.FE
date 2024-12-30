@@ -1,6 +1,7 @@
 import { DataPreparationService } from "./DataPreparationService";
 import { PredictionResponse, TaskStatusResponse, TiffFileResponse } from "../Domain/Response";
 import { AuthService } from '../../services/AuthService';
+import { TiffRecord } from "../Domain/Records";
 
 interface ProcessingTask {
     taskId: string;
@@ -154,8 +155,7 @@ export class DataHandlerService extends DataPreparationService{
 
     public async downloadGeoJSON(id: string, type: 'tissue' | 'cell'): Promise<void> {
         try {
-            const numericId = id.match(/\d+/)?.[0] ?? '';
-            id = numericId;
+            id = id.replace(/\D/g, '');
             const response = await AuthService.fetchWithAuth(
                 `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/download_geojson/${id}?type=${type}`
             );
@@ -214,6 +214,15 @@ export class DataHandlerService extends DataPreparationService{
             console.error('Error deleting TIFF data:', error);
             throw error;
         }
+    }
+
+    public storeRecordStatuses(records: TiffRecord[]) {
+        localStorage.setItem('recordStatuses', JSON.stringify(records));
+    }
+
+    public getStoredRecordStatuses(): TiffRecord[] {
+        const stored = localStorage.getItem('recordStatuses');
+        return stored ? JSON.parse(stored) : [];
     }
 
 }

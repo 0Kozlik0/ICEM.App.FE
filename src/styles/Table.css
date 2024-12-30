@@ -422,6 +422,7 @@ input[type="checkbox"].partial-checked:indeterminate::after {
 .status-legend-items {
     display: flex;
     gap: 24px;
+    justify-content: center;
 }
 
 .status-legend-item {
@@ -432,4 +433,9 @@ input[type="checkbox"].partial-checked:indeterminate::after {
 
 .status-legend-item .status-badge {
     margin: 0;
+}
+
+.status-failed {
+    background-color: #ffebee;
+    color: #c62828;
 }

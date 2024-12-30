@@ -1,5 +1,7 @@
 import { DataPreparationService } from "./DataPreparationService";
 import { PredictionResponse, TaskStatusResponse, TiffFileResponse } from "../Domain/Response";
+import { AuthService } from '../../services/AuthService';
+import { TiffRecord } from "../Domain/Records";
 
 interface ProcessingTask {
     taskId: string;
@@ -57,10 +59,13 @@ export class DataHandlerService extends DataPreparationService{
         
         try {
             setProgressText('Uploading data...');
-            const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/upload_zip`, {
-                method: 'POST',
-                body: filedata,
-            });
+            const response = await AuthService.fetchWithAuth(
+                `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/upload_zip`, 
+                {
+                    method: 'POST',
+                    body: filedata,
+                }
+            );
 
             if (response.ok) {
                 setProgressText('Data uploaded successfully');
@@ -94,7 +99,9 @@ export class DataHandlerService extends DataPreparationService{
 
     public async getTiffFiles(): Promise<TiffFileResponse> {
         try {
-            const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/get-tiff-files`);
+            const response = await AuthService.fetchWithAuth(
+                `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/get-tiff-files`
+            );
             if (!response.ok) {
                 throw new Error('Failed to fetch TIFF files');
             }
@@ -108,13 +115,17 @@ export class DataHandlerService extends DataPreparationService{
     public async predictStructureVPP2024(selectedIds: string[]): Promise<PredictionResponse> {
         try {
             const integerIds = selectedIds.map(id => parseInt(id.replace(/\D/g, '')));
-            const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/predict_structure`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(integerIds),
-            });
+            console.log(integerIds);
+            const response = await AuthService.fetchWithAuth(
+                `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/predict_structure`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(integerIds),
+                }
+            );
 
             if (!response.ok) {
                 throw new Error('Failed to start prediction');
@@ -129,7 +140,9 @@ export class DataHandlerService extends DataPreparationService{
 
     public async checkTaskStatus(taskId: string): Promise<TaskStatusResponse> {
         try {
-            const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/task-status/${taskId}`);
+            const response = await AuthService.fetchWithAuth(
+                `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/task-status/${taskId}`
+            );
             if (!response.ok) {
                 throw new Error('Failed to fetch task status');
             }
@@ -140,9 +153,12 @@ export class DataHandlerService extends DataPreparationService{
         }
     }
 
-    public async downloadGeoJSON(id: string): Promise<void> {
+    public async downloadGeoJSON(id: string, type: 'tissue' | 'cell'): Promise<void> {
         try {
-            const response = await fetch(`${process.env.REACT_APP_FAST_API_HOST}/ikem_api/download_geojson/${id}`);
+            id = id.replace(/\D/g, '');
+            const response = await AuthService.fetchWithAuth(
+                `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/download_geojson/${id}?type=${type}`
+            );
             if (!response.ok) {
                 throw new Error('Failed to download GeoJSON file');
             }
@@ -151,7 +167,7 @@ export class DataHandlerService extends DataPreparationService{
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${id}.geojson`;
+            a.download = `${type}_mask_${id}.geojson`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -180,6 +196,33 @@ export class DataHandlerService extends DataPreparationService{
     public removeTask(taskId: string) {
         const tasks = this.getStoredTasks().filter(task => task.taskId !== taskId);
         localStorage.setItem('processingTasks', JSON.stringify(tasks));
+    }
+
+    public async deleteTiffData(id: string): Promise<void> {
+        try {
+            const response = await AuthService.fetchWithAuth(
+                `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/clear-tiff-data/${id}`,
+                {
+                    method: 'DELETE'
+                }
+            );
+            
+            if (!response.ok) {
+                throw new Error('Failed to delete TIFF data');
+            }
+        } catch (error) {
+            console.error('Error deleting TIFF data:', error);
+            throw error;
+        }
+    }
+
+    public storeRecordStatuses(records: TiffRecord[]) {
+        localStorage.setItem('recordStatuses', JSON.stringify(records));
+    }
+
+    public getStoredRecordStatuses(): TiffRecord[] {
+        const stored = localStorage.getItem('recordStatuses');
+        return stored ? JSON.parse(stored) : [];
     }
 
 }

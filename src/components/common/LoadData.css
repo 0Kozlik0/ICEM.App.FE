@@ -3,44 +3,61 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 33vh;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 20px;
+    min-height: calc(100vh - 250px);
 }
 
 .LoadData-pathText{
-    margin: 20px 0px;
-    background-color: #cbf8ff12;
-    padding: 15px;
-    margin-bottom: 1vh;
+    margin: 20px 0;
+    color: #666;
+    font-size: 1rem;
 }
 
 .LoadData-hr{
-    width: 35%;
+    width: 100%;
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 20px 0;
 }
 
 .LoadData-button {
-    background-color: #3f6470;
-    color: #fff;
-    padding: 6px 22px;
-    border: 4px double #203a43;
-    font-size: 16px;
+    background-color: #d9534f;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 .LoadData-button:hover {
-    background-color: #3d535d;
+    background-color: #c9302c;
 }
 
 .LoadData-button:active {
-    background-color: #3d535d;
+    background-color: #5c1a22;
 }
 
 .LoadData-folderLabel{
-    background-color: #3f6470;
-    color: #fff;
-    padding: 6px 22px;
-    border: 4px double #203a43;
-    font-size: 16px;
+    background-color: #d9534f;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.LoadData-folderLabel:hover {
+    background-color: #c9302c;
 }
 
 #LoadData-folderSelector{
@@ -50,10 +67,135 @@
 }
 
 .LoadData-highlightText{
-    color: #41a582;
+    color: #b22222;
+    font-weight: 500;
 }
 
 .LoadData-highlightTextShift{
-    color: #41a582;
-    margin-bottom: 0px;
+    margin-top: 15px;
+    text-align: center;
+    color: #666;
+}
+
+.LoadData-uploadSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.LoadData-success {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #b22222;
+    max-width: 500px;
+    width: 100%;
+}
+
+.LoadData-success h3 {
+    color: #b22222;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.LoadData-success ol {
+    margin: 0;
+    padding-left: 20px;
+    color: #666;
+}
+
+.LoadData-success li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.LoadData-link {
+    color: #b22222;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.LoadData-link:hover {
+    text-decoration: underline;
+}
+
+.LoadData-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.LoadData-header h1 {
+    color: #b22222;
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+}
+
+.LoadData-description {
+    color: #666;
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.LoadData-uploadSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.LoadData-requirements {
+    background-color: #f8f9fa;
+    padding: 24px;
+    border-radius: 12px;
+    border-left: 4px solid #b22222;
+    width: 100%;
+}
+
+.LoadData-requirements h3 {
+    color: #b22222;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.LoadData-requirements ul {
+    color: #666;
+    margin: 0;
+    padding-left: 24px;
+}
+
+.LoadData-requirements li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.LoadData-uploadBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px;
+    border: 2px dashed #ffe4e6;
+    border-radius: 12px;
+    width: 100%;
+    background-color: #fff;
+}
+
+.LoadData-uploadIcon {
+    font-size: 48px !important;
+    color: #d9534f;
+    margin-bottom: 16px;
+}
+
+.LoadData-infoIcon {
+    color: #d9534f;
 }

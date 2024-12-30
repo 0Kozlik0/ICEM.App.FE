@@ -3,6 +3,10 @@ import '../styles/Table.css';
 import { DataHandlerService } from '../application/Application/DataHandlerService';
 import { TiffRecord } from '../application/Domain/Records';
 import { PredictionResponse } from '../application/Domain/Response';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
+import Footer from '../components/layout/Footer';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const MODEL_OPTIONS = [
     {
@@ -26,6 +30,9 @@ function TiffList() {
     const [pollingTasks, setPollingTasks] = useState<Set<string>>(new Set());
     const [selectedModel, setSelectedModel] = useState<string>('VPP 2024');
     const dataService = new DataHandlerService();
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
+    const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
 
     // Load records and check for existing tasks
     useEffect(() => {
@@ -35,26 +42,27 @@ function TiffList() {
                 const storedTasks = dataService.getStoredTasks();
                 
                 const formattedRecords: TiffRecord[] = response.tiff_files.map(file => {
-                    // Find if this record has an associated task
-                    const associatedTask = storedTasks.find(task => 
-                        task.recordIds.includes(file.id)
-                    );
-                    
+                    const storedTask = storedTasks.find(task => task.recordIds.includes(file.id));
                     return {
                         id: file.id,
                         name: `${file.id}.tiff`,
                         date: file.last_modified,
                         size: `${(file.size_bytes).toFixed(2)} MB`,
-                        status: associatedTask ? 'Processing' : 'Ready',
-                        taskId: associatedTask?.taskId
+                        status: storedTask ? 'Processing' : 'Ready',
+                        taskId: storedTask?.taskId
                     };
                 });
                 
                 setRecords(formattedRecords);
                 
-                // Add stored tasks to polling
-                const storedTaskIds = new Set(storedTasks.map(task => task.taskId));
-                setPollingTasks(storedTaskIds);
+                // Only add tasks that are in Processing state
+                const processingTasks = new Set(
+                    formattedRecords
+                        .filter(record => record.status === 'Processing')
+                        .map(record => record.taskId)
+                        .filter((taskId): taskId is string => taskId !== undefined)
+                );
+                setPollingTasks(processingTasks);
             } catch (error) {
                 console.error('Error fetching TIFF files:', error);
             } finally {
@@ -67,50 +75,22 @@ function TiffList() {
 
     // Status polling effect
     useEffect(() => {
-        const a = Array.from(pollingTasks);
-        if (a[0] === undefined) return;
+        const intervals: { [key: string]: NodeJS.Timeout } = {};
         
-        const pollInterval = setInterval(async () => {
-            const updatedRecords = [...records];
-            let tasksCompleted = new Set<string>();
-            
-            console.log(pollingTasks);
-            for (const taskId of pollingTasks) {
-                try {
-                    const status = await dataService.checkTaskStatus(taskId);
-                    // Only update records that have this specific taskId
-                    updatedRecords.forEach((record, index) => {
-                        if (record.taskId === taskId) {
-                            updatedRecords[index] = {
-                                ...record,
-                                status: status.status
-                            };
-                            
-                            if (status.status === 'Success') {
-                                tasksCompleted.add(taskId);
-                                dataService.removeTask(taskId);
-                            }
-                        }
-                    });
-                } catch (error) {
-                    console.error('Error polling status:', error);
+        // Only start polling for tasks that are in Processing state
+        records
+            .filter(record => record.status === 'Processing' && record.taskId)
+            .forEach(record => {
+                if (record.taskId && !intervals[record.taskId]) {
+                    intervals[record.taskId] = startPolling(record.taskId);
                 }
-            }
-            
-            setRecords(updatedRecords);
-            
-            // Remove completed tasks from polling
-            if (tasksCompleted.size > 0) {
-                setPollingTasks(prev => {
-                    const newTasks = new Set(prev);
-                    tasksCompleted.forEach(taskId => newTasks.delete(taskId));
-                    return newTasks;
-                });
-            }
-        }, 5000);
+            });
 
-        return () => clearInterval(pollInterval);
-    }, [pollingTasks, records]);
+        // Cleanup function
+        return () => {
+            Object.values(intervals).forEach(interval => clearInterval(interval));
+        };
+    }, [records, pollingTasks.size]);
 
     const filteredAndSortedRecords = useMemo(() => {
         return records
@@ -126,18 +106,27 @@ function TiffList() {
 
     const handleCheckboxChange = (id: string) => {
         setSelectedRecords(prev => {
-            if (prev.includes(id)) {
-                return prev.filter(recordId => recordId !== id);
-            } else {
-                return [...prev, id];
+            // If we're adding a new selection
+            if (!prev.includes(id)) {
+                const newSelectedRecords = [...prev, id];
+                // If after adding this selection we have all records selected,
+                // clear the selection
+                if (newSelectedRecords.length === filteredAndSortedRecords.length) {
+                    return [];
+                }
+                return newSelectedRecords;
             }
+            // If we're removing a selection, just remove it
+            return prev.filter(recordId => recordId !== id);
         });
     };
 
     const handleSelectAll = () => {
-        if (selectedRecords.length === filteredAndSortedRecords.length) {
+        if (selectedRecords.length > 0) {
+            // If any records are selected, clear the selection
             setSelectedRecords([]);
         } else {
+            // If no records are selected, select all
             setSelectedRecords(filteredAndSortedRecords.map(record => record.id));
         }
     };
@@ -157,7 +146,7 @@ function TiffList() {
                 // Store task information
                 dataService.storeTask(response!.task_id, selectedRecords);
                 
-                // Update records with task ID and initial status
+                // Update only selected records with task ID and Processing status
                 setRecords(prev => prev.map(record => {
                     if (selectedRecords.includes(record.id)) {
                         return {
@@ -169,8 +158,9 @@ function TiffList() {
                     return record;
                 }));
                 
-                // Add task to polling set
+                // Add task to polling set and start polling
                 setPollingTasks(prev => new Set(prev).add(response!.task_id));
+                startPolling(response.task_id);
                 
                 setSelectedRecords([]); // Clear selection
             }
@@ -183,38 +173,130 @@ function TiffList() {
         setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
     };
 
+    const handleDeleteClick = (id: string) => {
+        setRecordToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleDelete = async () => {
+        if (recordToDelete) {
+            try {
+                await dataService.deleteTiffData(recordToDelete);
+                setRecords(prev => prev.filter(record => record.id !== recordToDelete));
+            } catch (error) {
+                console.error('Error deleting TIFF data:', error);
+            }
+            setIsDeleteModalOpen(false);
+            setRecordToDelete(null);
+        }
+    };
+
+    const startPolling = (taskId: string) => {
+        const pollInterval = setInterval(async () => {
+            try {
+                const status = await dataService.checkTaskStatus(taskId);
+                setRecords(prev => prev.map(record => {
+                    if (record.taskId === taskId) {
+                        return {
+                            ...record,
+                            status: status.status === 'Pending' ? 'Processing' : status.status
+                        };
+                    }
+                    return record;
+                }));
+                
+                if (status.status === 'Success' || status.status === 'Failed') {
+                    dataService.removeTask(taskId);
+                    setPollingTasks(prev => {
+                        const newTasks = new Set(prev);
+                        newTasks.delete(taskId);
+                        return newTasks;
+                    });
+                    setCompletedTasks(prev => new Set(prev).add(taskId));
+                    clearInterval(pollInterval);
+                }
+            } catch (error) {
+                console.error('Error polling status:', error);
+            }
+        }, 5000);
+
+        return pollInterval;
+    };
+
+    // Add this useEffect to handle cleanup of completed tasks
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            completedTasks.forEach(taskId => {
+                dataService.removeTask(taskId);
+            });
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            // Clean up when component unmounts
+            completedTasks.forEach(taskId => {
+                dataService.removeTask(taskId);
+            });
+        };
+    }, [completedTasks]);
+
     return (
-        <div className="page-container">
-            <h1>TIFF Files</h1>
-            {isLoading ? (
-                <div>Loading...</div>
-            ) : (
-                <>
-                    <div className="table-controls">
-                        <input
-                            type="text"
-                            placeholder="Search by name..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input"
-                        />
-                        <div className="process-controls">
-                            <div className="model-select-container">
-                                <select 
-                                    value={selectedModel}
-                                    onChange={(e) => setSelectedModel(e.target.value)}
-                                    className="model-select"
-                                >
-                                    {MODEL_OPTIONS.map(option => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="model-info-tooltip">
-                                    {MODEL_OPTIONS.find(option => option.value === selectedModel)?.description}
-                                </div>
+        <>
+            <div className="page-container">
+                <div className="table-container">
+                    <div className="status-legend">
+                        <h3>Status Meanings:</h3>
+                        <div className="status-legend-items">
+                            <div className="status-legend-item">
+                                <span className="status-badge status-imported">Ready</span>
+                                <span>Ready for processing</span>
                             </div>
+                            <div className="status-legend-item">
+                                <span className="status-badge status-processing">Processing</span>
+                                <span>Analysis in progress</span>
+                            </div>
+                            <div className="status-legend-item">
+                                <span className="status-badge status-processed">Success</span>
+                                <span>Analysis completed</span>
+                            </div>
+                            <div className="status-legend-item">
+                                <span className="status-badge status-failed">Failed</span>
+                                <span>Error occurred</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="table-controls">
+                        <div className="search-section">
+                            <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            <input
+                                type="text"
+                                placeholder="Search by name"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="search-input"
+                            />
+                            {/* <button className="icon-button">
+                                <DeleteIcon />
+                            </button> */}
+                        </div>
+                        <div className="action-section">
+                            <span className="model-select-label">Model:</span>
+                            <select 
+                                value={selectedModel}
+                                onChange={(e) => setSelectedModel(e.target.value)}
+                                className="model-select-inline"
+                            >
+                                <option value="">Select model</option>
+                                {MODEL_OPTIONS.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
                             <button 
                                 className="process-button"
                                 onClick={handleProcess}
@@ -224,47 +306,103 @@ function TiffList() {
                             </button>
                         </div>
                     </div>
-                    <div className="table-container">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>
+                    
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input
+                                        type="checkbox"
+                                        className={
+                                            selectedRecords.length > 0 && 
+                                            selectedRecords.length < filteredAndSortedRecords.length 
+                                                ? 'partial-checked' 
+                                                : ''
+                                        }
+                                        ref={checkbox => {
+                                            if (checkbox) {
+                                                checkbox.indeterminate = 
+                                                    selectedRecords.length > 0 && 
+                                                    selectedRecords.length < filteredAndSortedRecords.length;
+                                            }
+                                        }}
+                                        checked={selectedRecords.length === filteredAndSortedRecords.length}
+                                        onChange={handleSelectAll}
+                                    />
+                                </th>
+                                <th>Name</th>
+                                <th onClick={toggleSortDirection}>
+                                    Date {sortDirection === 'asc' ? '↑' : '↓'}
+                                </th>
+                                {/* <th>Model</th> */}
+                                <th>Status</th>
+                                {/* <th>Results</th> */}
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredAndSortedRecords.map((record) => (
+                                <tr key={record.id}>
+                                    <td>
                                         <input
                                             type="checkbox"
-                                            checked={selectedRecords.length === filteredAndSortedRecords.length}
-                                            onChange={handleSelectAll}
+                                            checked={selectedRecords.includes(record.id)}
+                                            onChange={() => handleCheckboxChange(record.id)}
                                         />
-                                    </th>
-                                    <th>Name</th>
-                                    <th onClick={toggleSortDirection} className="sortable-header">
-                                        Date {sortDirection === 'asc' ? '↑' : '↓'}
-                                    </th>
-                                    <th>Size</th>
-                                    <th>Status</th>
+                                    </td>
+                                    <td>{record.name}</td>
+                                    <td>{record.date}</td>
+                                    {/* <td>
+                                        <select className="model-select-inline">
+                                            <option value="">Select model</option>
+                                            {MODEL_OPTIONS.map(option => (
+                                                <option key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </td> */}
+                                    <td>
+                                        <span className={`status-badge ${
+                                            record.status === 'Ready' ? 'status-imported' :
+                                            record.status === 'Processing' ? 'status-processing' :
+                                            record.status === 'Success' ? 'status-processed' :
+                                            record.status === 'Failed' ? 'status-failed' : ''
+                                        }`}>
+                                            {record.status}
+                                        </span>
+                                    </td>
+                                    {/* <td>
+                                        {record.status === 'Processed' && (
+                                            <button className="icon-button">
+                                                <DownloadIcon />
+                                            </button>
+                                        )}
+                                    </td> */}
+                                    <td>
+                                        <button 
+                                            className="icon-button"
+                                            onClick={() => handleDeleteClick(record.id)}
+                                            title="Delete file and associated data"
+                                        >
+                                            <DeleteIcon />
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {filteredAndSortedRecords.map((record) => (
-                                    <tr key={record.id}>
-                                        <td>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedRecords.includes(record.id)}
-                                                onChange={() => handleCheckboxChange(record.id)}
-                                            />
-                                        </td>
-                                        <td>{record.name}</td>
-                                        <td>{record.date}</td>
-                                        <td>{record.size}</td>
-                                        <td>{record.status}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </>
-            )}
-        </div>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <Footer />
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDelete}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this file and all associated data? This action cannot be undone."
+            />
+        </>
     );
 }
 

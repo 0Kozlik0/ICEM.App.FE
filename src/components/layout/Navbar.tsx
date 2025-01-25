@@ -11,7 +11,7 @@ function Navbar() {
             <div className="navbar-container">
                 <Link to="/" className="navbar-logo">
                     <img src={vggLogo} alt="VGG Logo" className="navbar-logo-image" />
-                    Inteligent Assistant
+                    Intelligent Assistant
                 </Link>
                 <ul className="nav-menu">
                     <li className="nav-item">

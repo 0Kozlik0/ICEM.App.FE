@@ -11,9 +11,9 @@ import ConfirmationModal from '../components/common/ConfirmationModal';
 const MODEL_OPTIONS = [
     {
         value: 'VPP 2024',
-        label: 'VPP 2024',
+        label: 'IEDL',
         description: 'Latest model used for segmentation and prediction of hearth tissue structures'
-    },
+    }
     // {
     //     value: 'VPP 2023',
     //     label: 'VPP 2023',
@@ -106,17 +106,11 @@ function TiffList() {
 
     const handleCheckboxChange = (id: string) => {
         setSelectedRecords(prev => {
-            // If we're adding a new selection
             if (!prev.includes(id)) {
-                const newSelectedRecords = [...prev, id];
-                // If after adding this selection we have all records selected,
-                // clear the selection
-                if (newSelectedRecords.length === filteredAndSortedRecords.length) {
-                    return [];
-                }
-                return newSelectedRecords;
+                // If we're adding a new selection
+                return [...prev, id];
             }
-            // If we're removing a selection, just remove it
+            // If we're removing a selection
             return prev.filter(recordId => recordId !== id);
         });
     };
@@ -285,18 +279,25 @@ function TiffList() {
                         </div>
                         <div className="action-section">
                             <span className="model-select-label">Model:</span>
-                            <select 
-                                value={selectedModel}
-                                onChange={(e) => setSelectedModel(e.target.value)}
-                                className="model-select-inline"
-                            >
-                                <option value="">Select model</option>
-                                {MODEL_OPTIONS.map(option => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="model-select-wrapper">
+                                <select 
+                                    value={selectedModel}
+                                    onChange={(e) => setSelectedModel(e.target.value)}
+                                    className="model-select-inline"
+                                >
+                                    <option value="">Select model</option>
+                                    {MODEL_OPTIONS.map(option => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="model-tooltip">
+                                    {selectedModel 
+                                        ? MODEL_OPTIONS.find(opt => opt.value === selectedModel)?.description
+                                        : "Hover to see model description. Select a model to proceed with processing."}
+                                </div>
+                            </div>
                             <button 
                                 className="process-button"
                                 onClick={handleProcess}

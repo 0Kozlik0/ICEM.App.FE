@@ -75,11 +75,7 @@ function GeoJSONList() {
     const handleCheckboxChange = (id: string) => {
         setSelectedRecords(prev => {
             if (!prev.includes(id)) {
-                const newSelectedRecords = [...prev, id];
-                if (newSelectedRecords.length === filteredAndSortedRecords.length) {
-                    return [];
-                }
-                return newSelectedRecords;
+                return [...prev, id];
             }
             return prev.filter(recordId => recordId !== id);
         });

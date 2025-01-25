@@ -7,7 +7,7 @@ function ImageUpload() {
         <>
             <div>
                 {/* <div className='App-headerBg'>
-                    <h1 className='App-header'>IKEM - Image Upload</h1>
+                    <h1 className='App-header'>Image Upload</h1>
                 </div>
                 <hr className='App-hr'/> */}
                 <LoadData />

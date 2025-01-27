@@ -1,14 +1,14 @@
-version: '3.8'
+version: "3.8"
 
 services:
   vgg_hist_fe:
-    build: .
+    image: tanczi0810/ikem-fe:1.0.0
     ports:
       - 78:80
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./logs:/var/log/nginx
-    env_file:
-      - .env
+    environment:
+      - REACT_APP_FAST_API_HOST = https://histo.vgg.fiit.stuba.sk
     extra_hosts:
       - "host.docker.internal:host-gateway"

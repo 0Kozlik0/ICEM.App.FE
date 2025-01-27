@@ -1,5 +1,4 @@
-name: Build and Push Docker Image
-
+name: Build and push Docker image for IKEM FE
 on:
   workflow_dispatch:
     inputs:

@@ -27,6 +27,17 @@ function Home() {
                             <p>The results provided by this tool are meant to assist in research and analysis. All predicted results must be verified 
                             by qualified experts before being used in any research context or conclusions.</p>
                         </div>
+
+                        <div className="info-card">
+                            <h2>File Requirements</h2>
+                            <p>When preparing your files for upload:</p>
+                            <ul className="requirements-list">
+                                <li>Files must be in .ome.tif format</li>
+                                <li>File names must follow the pattern: number_number.ome.tif</li>
+                                <li>Example valid names: 1_1.ome.tif, 23_45.ome.tif</li>
+                                <li>All files must be contained in a single ZIP archive</li>
+                            </ul>
+                        </div>
                     </div>
 
                     <div className="tutorial-content">

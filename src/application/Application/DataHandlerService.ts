@@ -114,7 +114,8 @@ export class DataHandlerService extends DataPreparationService{
 
     public async predictStructureVPP2024(selectedIds: string[]): Promise<PredictionResponse> {
         try {
-            const integerIds = selectedIds.map(id => parseInt(id.replace(/\D/g, '')));
+            // const integerIds = selectedIds.map(id => parseInt(id.replace(/\D/g, '')));
+            const integerIds = selectedIds;
             console.log(integerIds);
             const response = await AuthService.fetchWithAuth(
                 `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/predict_structure`,
@@ -155,7 +156,7 @@ export class DataHandlerService extends DataPreparationService{
 
     public async downloadGeoJSON(id: string, type: 'tissue' | 'cell'): Promise<void> {
         try {
-            id = id.replace(/\D/g, '');
+            id = id.split('mask_')[1].split('.')[0];
             const response = await AuthService.fetchWithAuth(
                 `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/download_geojson/${id}?type=${type}`
             );
@@ -200,6 +201,7 @@ export class DataHandlerService extends DataPreparationService{
 
     public async deleteTiffData(id: string): Promise<void> {
         try {
+            id = id.split('.')[0];
             const response = await AuthService.fetchWithAuth(
                 `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/clear-tiff-data/${id}`,
                 {

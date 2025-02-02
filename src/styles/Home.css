@@ -103,6 +103,18 @@
     line-height: 1.5;
 }
 
+.requirements-list {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 10px 0;
+}
+
+.requirements-list li {
+    color: #666;
+    margin: 8px 0;
+    line-height: 1.4;
+}
+
 @media (max-width: 768px) {
     .info-cards {
         grid-template-columns: 1fr;

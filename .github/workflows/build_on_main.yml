@@ -33,7 +33,7 @@ jobs:
           push: true
           tags: tanczi0810/ikem-fe:${{ github.event.inputs.tag }}
 
-      - name: Tag Docker image with version
-        run: |
-          docker tag tanczi0810/ikem-fe:${{ github.event.inputs.tag }} tanczi0810/ikem-fe:${{ github.event.inputs.tag }}
-          docker push tanczi0810/ikem-fe:${{ github.event.inputs.tag }}
+      # - name: Tag Docker image with version
+      #   run: |
+      #     docker tag tanczi0810/ikem-fe:${{ github.event.inputs.tag }} tanczi0810/ikem-fe:${{ github.event.inputs.tag }}
+      #     docker push tanczi0810/ikem-fe:${{ github.event.inputs.tag }}

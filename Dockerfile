@@ -6,6 +6,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# Set environment variable
+ENV REACT_APP_FAST_API_HOST=https://histo.vgg.fiit.stuba.sk
+
+
 COPY . .
 RUN npm run build
 

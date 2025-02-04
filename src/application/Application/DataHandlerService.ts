@@ -115,7 +115,7 @@ export class DataHandlerService extends DataPreparationService{
     public async predictStructureVPP2024(selectedIds: string[]): Promise<PredictionResponse> {
         try {
             // const integerIds = selectedIds.map(id => parseInt(id.replace(/\D/g, '')));
-            const integerIds = selectedIds;
+            const integerIds = selectedIds.map(id => id.split('.')[0]);
             console.log(integerIds);
             const response = await AuthService.fetchWithAuth(
                 `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/predict_structure`,
@@ -144,10 +144,14 @@ export class DataHandlerService extends DataPreparationService{
             const response = await AuthService.fetchWithAuth(
                 `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/task-status/${taskId}`
             );
+            
             if (!response.ok) {
                 throw new Error('Failed to fetch task status');
             }
-            return await response.json();
+            
+            const data = await response.json();
+            console.log('Task status response:', data);
+            return data;
         } catch (error) {
             console.error('Error checking task status:', error);
             throw error;

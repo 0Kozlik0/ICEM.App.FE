@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
 import vggLogo from '../../assets/images/VGG.png';
+import NotificationIcon from '../common/NotificationIcon';
 
 function Navbar() {
     const location = useLocation();
@@ -35,6 +36,7 @@ function Navbar() {
                         </Link>
                     </li>
                 </ul>
+                {/* <NotificationIcon /> */}
             </div>
         </nav>
     );

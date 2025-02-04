@@ -191,9 +191,23 @@ function TiffList() {
                 const status = await dataService.checkTaskStatus(taskId);
                 setRecords(prev => prev.map(record => {
                     if (record.taskId === taskId) {
+                        let displayStatus;
+                        switch (status.status) {
+                            case 'Pending':
+                                displayStatus = 'Processing';
+                                break;
+                            case 'Success':
+                                displayStatus = 'Success';
+                                break;
+                            case 'Failed':
+                                displayStatus = 'Failed';
+                                break;
+                            default:
+                                displayStatus = 'Processing';
+                        }
                         return {
                             ...record,
-                            status: status.status === 'Pending' ? 'Processing' : status.status
+                            status: displayStatus
                         };
                     }
                     return record;
@@ -208,6 +222,15 @@ function TiffList() {
                     });
                     setCompletedTasks(prev => new Set(prev).add(taskId));
                     clearInterval(pollInterval);
+                    
+                    // Add notification
+                    const notification = {
+                        id: `${taskId}-${Date.now()}`,
+                        message: `File processing ${status.status === 'Success' ? 'completed' : 'failed'}: ${records.find(r => r.taskId === taskId)?.name || 'Unknown file'}`,
+                        type: status.status === 'Success' ? 'success' : 'error',
+                        timestamp: new Date()
+                    };
+                    window.dispatchEvent(new CustomEvent('newNotification', { detail: notification }));
                 }
             } catch (error) {
                 console.error('Error polling status:', error);

@@ -4,7 +4,7 @@ import { GeoJSONFileResponse } from '../application/Domain/Response';
 import { GeoJSONRecord } from '../application/Domain/Records';
 import { DataHandlerService } from '../application/Application/DataHandlerService';
 import Footer from '../components/layout/Footer';
-import { AuthService } from '../services/AuthService';
+import { AuthService } from '../application/Application/AuthService';
 
 function GeoJSONList() {
     const [records, setRecords] = useState<GeoJSONRecord[]>([]);

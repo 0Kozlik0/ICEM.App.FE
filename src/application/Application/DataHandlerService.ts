@@ -1,6 +1,6 @@
 import { DataPreparationService } from "./DataPreparationService";
 import { PredictionResponse, TaskStatusResponse, TiffFileResponse } from "../Domain/Response";
-import { AuthService } from '../../services/AuthService';
+import { AuthService } from './AuthService';
 import { TiffRecord } from "../Domain/Records";
 
 interface ProcessingTask {

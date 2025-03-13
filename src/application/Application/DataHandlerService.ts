@@ -115,8 +115,8 @@ export class DataHandlerService extends DataPreparationService{
     public async predictStructureVPP2024(selectedIds: string[]): Promise<PredictionResponse> {
         try {
             // const integerIds = selectedIds.map(id => parseInt(id.replace(/\D/g, '')));
-            const integerIds = selectedIds.map(id => id.split('.')[0]);
-            console.log(integerIds);
+            const integerIds = selectedIds.map(id => id.substring(0, id.lastIndexOf('.')));
+            console.log("integerIds", integerIds);
             const response = await AuthService.fetchWithAuth(
                 `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/predict_structure`,
                 {
@@ -129,6 +129,7 @@ export class DataHandlerService extends DataPreparationService{
             );
 
             if (!response.ok) {
+                console.log(response);
                 throw new Error('Failed to start prediction');
             }
 
@@ -160,7 +161,7 @@ export class DataHandlerService extends DataPreparationService{
 
     public async downloadGeoJSON(id: string, type: 'tissue' | 'cell'): Promise<void> {
         try {
-            id = id.split('mask_')[1].split('.')[0];
+            // id = id.split('mask_')[1].split('.')[0];
             const response = await AuthService.fetchWithAuth(
                 `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/download_geojson/${id}?type=${type}`
             );
@@ -172,7 +173,7 @@ export class DataHandlerService extends DataPreparationService{
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${type}_mask_${id}.geojson`;
+            a.download = id;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);

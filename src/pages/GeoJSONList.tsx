@@ -27,13 +27,13 @@ function GeoJSONList() {
                 console.log(data);
                 
                 const formattedRecords: GeoJSONRecord[] = data.geojson_files.map(file => {
-                    const type = file.id.toLowerCase().includes('tissue') ? 'tissue' : 'cell';
+                    // const type = file.id.toLowerCase().includes('tissue') ? 'tissue' : 'cell';
                     return {
                         id: file.id,
-                        name: `${file.id}.geojson`,
+                        name: `${file.id}`,
                         date: file.last_modified,
-                        size: `${file.size_bytes.toFixed(2)} MB`,
-                        type: type
+                        size: `${(file.size_bytes / 1024 / 1024).toFixed(2)} MB`,
+                        type: "cell"
                     };
                 });
                 

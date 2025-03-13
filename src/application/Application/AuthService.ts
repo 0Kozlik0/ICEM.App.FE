@@ -15,18 +15,18 @@ export class AuthService {
         response = await fetch(url, { ...options, headers: headers as HeadersInit });
     } catch (error) {
         // token expired or invalid
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('isAuthenticated');
-        window.location.href = '/login';
-        throw new Error('Authentication required')
+        // localStorage.removeItem('access_token');
+        // localStorage.removeItem('isAuthenticated');
+        // window.location.href = '/login';
+        throw response
     }
     
-    if (response.status === 401 || response.status === 403 || response.status === 500) {
-        //   Token expired or invalid
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('isAuthenticated');
-        window.location.href = '/login';
-        throw new Error('Authentication required');
+    if (response.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('isAuthenticated');
+          window.location.href = '/login';
+        throw response;
     }
     
     return response;

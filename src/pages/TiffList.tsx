@@ -45,7 +45,7 @@ function TiffList() {
                     const storedTask = storedTasks.find(task => task.recordIds.includes(file.id));
                     return {
                         id: file.id,
-                        name: `${file.id}.tiff`,
+                        name: `${file.id}`,
                         date: file.last_modified,
                         size: `${(file.size_bytes).toFixed(2)} MB`,
                         status: storedTask ? 'Processing' : 'Ready',
@@ -106,12 +106,12 @@ function TiffList() {
 
     const handleCheckboxChange = (id: string) => {
         setSelectedRecords(prev => {
-            if (!prev.includes(id)) {
-                // If we're adding a new selection
-                return [...prev, id];
-            }
-            // If we're removing a selection
-            return prev.filter(recordId => recordId !== id);
+            const newState = prev.includes(id)
+                ? prev.filter(recordId => recordId !== id)  // Remove if already selected
+                : [...prev, id];  // Add if not selected
+            
+            console.log("Updated selectedRecords:", newState);
+            return newState;
         });
     };
 
@@ -127,8 +127,10 @@ function TiffList() {
 
     const handleProcess = async () => {
         try {
+            console.log("Processing records:", selectedRecords);
             let response: PredictionResponse | undefined;
             if (selectedModel === 'VPP 2024') {
+                console.log(selectedRecords);
                 response = await dataService.predictStructureVPP2024(selectedRecords);
             } else if (selectedModel === 'VPP 2023') {
                 // TODO: Implement new model

@@ -35,8 +35,8 @@ function Navbar() {
                             Results
                         </Link>
                     </li>
+                <NotificationIcon />
                 </ul>
-                {/* <NotificationIcon /> */}
             </div>
         </nav>
     );

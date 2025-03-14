@@ -2,6 +2,7 @@ import { DataPreparationService } from "./DataPreparationService";
 import { PredictionResponse, TaskStatusResponse, TiffFileResponse } from "../Domain/Response";
 import { AuthService } from './AuthService';
 import { TiffRecord } from "../Domain/Records";
+import { NotificationService } from './NotificationService';
 
 interface ProcessingTask {
     taskId: string;
@@ -51,6 +52,10 @@ export class DataHandlerService extends DataPreparationService{
         const validation = await this.validateZipFile(file);
         if (!validation.isValid) {
             setProgressText(validation.message);
+            NotificationService.addNotification({
+                message: validation.message,
+                type: 'error'
+            });
             return;
         }
 
@@ -59,6 +64,11 @@ export class DataHandlerService extends DataPreparationService{
         
         try {
             setProgressText('Uploading data...');
+            NotificationService.addNotification({
+                message: `Uploading ${file.name}...`,
+                type: 'info'
+            });
+            
             const response = await AuthService.fetchWithAuth(
                 `${process.env.REACT_APP_FAST_API_HOST}/ikem_api/upload_zip`, 
                 {
@@ -69,13 +79,25 @@ export class DataHandlerService extends DataPreparationService{
 
             if (response.ok) {
                 setProgressText('Data uploaded successfully');
+                NotificationService.addNotification({
+                    message: `${file.name} uploaded successfully`,
+                    type: 'success'
+                });
                 console.log('File uploaded successfully');
             } else {
                 setProgressText('Error - Data did not upload');
+                NotificationService.addNotification({
+                    message: `Error uploading ${file.name}`,
+                    type: 'error'
+                });
                 console.error('Error uploading file');
             }
         } catch (error) {
             setProgressText('Error - Data did not upload');
+            NotificationService.addNotification({
+                message: `Error uploading ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                type: 'error'
+            });
             console.error('Error uploading file:', error);
         }
     }

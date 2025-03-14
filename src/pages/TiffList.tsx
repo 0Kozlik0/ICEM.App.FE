@@ -7,6 +7,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import Footer from '../components/layout/Footer';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import { NotificationService } from '../application/Application/NotificationService';
 
 const MODEL_OPTIONS = [
     {
@@ -95,7 +96,8 @@ function TiffList() {
     const filteredAndSortedRecords = useMemo(() => {
         return records
             .filter(record => 
-                record.name.toLowerCase().includes(searchTerm.toLowerCase())
+                record.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                !record.name.startsWith('.')
             )
             .sort((a, b) => {
                 const dateA = new Date(a.date).getTime();
@@ -159,6 +161,11 @@ function TiffList() {
                 startPolling(response.task_id);
                 
                 setSelectedRecords([]); // Clear selection
+
+                selectedRecords.forEach(recordId => {
+                    const fileName = records.find(r => r.id === recordId)?.name || 'Unknown file';
+                    NotificationService.notifyTaskStatus(response?.task_id || '', 'Pending', fileName);
+                });
             }
         } catch (error) {
             console.error('Error processing records:', error);
@@ -226,13 +233,8 @@ function TiffList() {
                     clearInterval(pollInterval);
                     
                     // Add notification
-                    const notification = {
-                        id: `${taskId}-${Date.now()}`,
-                        message: `File processing ${status.status === 'Success' ? 'completed' : 'failed'}: ${records.find(r => r.taskId === taskId)?.name || 'Unknown file'}`,
-                        type: status.status === 'Success' ? 'success' : 'error',
-                        timestamp: new Date()
-                    };
-                    window.dispatchEvent(new CustomEvent('newNotification', { detail: notification }));
+                    const fileName = records.find(r => r.taskId === taskId)?.name || 'Unknown file';
+                    NotificationService.notifyTaskStatus(taskId, status.status, fileName);
                 }
             } catch (error) {
                 console.error('Error polling status:', error);
